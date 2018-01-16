@@ -43,8 +43,8 @@ class DisplayPlaneManager {
   bool Initialize(uint32_t width, uint32_t height);
 
   bool ValidateLayers(std::vector<OverlayLayer> &layers, int add_index,
-                      bool disable_overlay, bool *commit_checked,
-                      bool *re_validation_needed,
+                      bool disable_overlay, bool idle_frame,
+                      bool *commit_checked, bool *re_validation_needed,
                       DisplayPlaneStateList &composition,
                       DisplayPlaneStateList &previous_composition,
                       std::vector<NativeSurface *> &mark_later);
@@ -138,6 +138,13 @@ class DisplayPlaneManager {
                            bool recycle_resources);
 
   void SwapSurfaceIfNeeded(DisplayPlaneState *plane);
+
+  bool CheckForDownScaling(DisplayPlaneStateList &composition,
+                           std::vector<OverlayPlane> &commit_planes);
+
+  void FinalizeValidation(DisplayPlaneStateList &composition,
+                          const std::vector<OverlayPlane> &commit_planes,
+                          bool *render_layers, bool *re_validation_needed);
 
   DisplayPlaneHandler *plane_handler_;
   ResourceManager *resource_manager_;

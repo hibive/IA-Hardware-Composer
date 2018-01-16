@@ -210,8 +210,6 @@ void DisplayQueue::GetCachedLayers(const std::vector<OverlayLayer>& layers,
                 DisplayPlaneState::ReValidationType::kScanout);
           }
         }
-      } else {
-        last_plane.ResetCompositionRegion();
       }
     }
 
@@ -359,6 +357,8 @@ void DisplayQueue::GetCachedLayers(const std::vector<OverlayLayer>& layers,
           ignore_commit = false;
           break;
         }
+
+        reset_composition_regions = true;
       }
 
       last_plane.SetOverlayLayer(layer);
@@ -402,6 +402,7 @@ void DisplayQueue::GetCachedLayers(const std::vector<OverlayLayer>& layers,
             source_layers.at(0), size - 1, size - 2);
 #endif
         old_plane.AddLayer(layer);
+        old_plane.RefreshSurfaces(NativeSurface::kFullClear);
         last_overlay.GetDisplayPlane()->SetInUse(false);
         composition->erase(composition->begin() + (size - 1));
       }
@@ -621,7 +622,7 @@ bool DisplayQueue::QueueUpdate(std::vector<HwcLayer*>& source_layers,
 
     if (!validate_layers && add_index > 0) {
       bool render_cursor = display_plane_manager_->ValidateLayers(
-          layers, add_index, disable_ovelays, &commit_checked,
+          layers, add_index, disable_ovelays, false, &commit_checked,
           &needs_plane_validation, current_composition_planes,
           previous_plane_state_, surfaces_not_inuse_);
 
@@ -669,7 +670,7 @@ bool DisplayQueue::QueueUpdate(std::vector<HwcLayer*>& source_layers,
                      ((state_ & kConfigurationChanged) && (layers.size() > 1));
     bool test_commit = false;
     render_layers = display_plane_manager_->ValidateLayers(
-        layers, add_index, force_gpu, &test_commit, &test_commit,
+        layers, add_index, force_gpu, idle_frame, &test_commit, &test_commit,
         current_composition_planes, previous_plane_state_, surfaces_not_inuse_);
     // If Video effects need to be applied, let's make sure
     // we go through the composition pass for Video Layers.
